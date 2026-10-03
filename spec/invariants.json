@@ -1,0 +1,18 @@
+{
+  "spec": "unspoken-resonance.warmstart.invariants",
+  "version": 1,
+  "invariants": [
+    {
+      "id": "cross-seed-diversity",
+      "metric": "mean pairwise field distance (1 - fieldAgreement) across final fields of DISTINCT seeds, warm arm",
+      "floor": ">= 0.8 x the same measure on the COLD arm of the same run set (cold arm = control rung)",
+      "derivation": "WP-11: if every drum starts from a similar past field, fields homogenize; the quantum breath of the moth matters more, not less. Relative-to-cold floor because absolute diversity is scene-dependent; the control rung must stay flat while warm saves passes."
+    },
+    {
+      "id": "moth-breath-scaling",
+      "formula": "amp(closeness) = clamp(0.35 * (1 + 0.5 * closeness), 0.35, 0.5); closeness = 1 - warmDistance",
+      "derivation": "the closer the warm-start, the stronger the moth's perturbation budget, so near warm-starts cannot converge to identical drums; base 0.35 preserved for cold starts (closeness 0), cap 0.5 pre-registered."
+    }
+  ],
+  "spec_sha_note": "spec_sha = sha256 of the canon() form of this object; carried in every run-warm receipt"
+}

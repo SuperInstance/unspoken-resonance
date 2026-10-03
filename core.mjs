@@ -22,6 +22,17 @@ import crypto from "node:crypto";
 export const sha256 = (s) => crypto.createHash("sha256").update(s).digest("hex");
 export const round6 = (x) => Math.round(x * 1e6) / 1e6;
 
+// stable canonical json (sorted keys, no whitespace) — the PRE-REGISTRATION
+// vocabulary: spec/invariants.json defines spec_sha = sha256(canon(spec)),
+// so reformatting the spec file moves nothing and editing a value moves
+// everything. Same shape as madlibs-jev's engine.mjs canon.
+export const canon = (o) => {
+  if (o === null || typeof o !== "object") return JSON.stringify(o);
+  if (Array.isArray(o)) return "[" + o.map(canon).join(",") + "]";
+  return "{" + Object.keys(o).sort()
+    .map((k) => JSON.stringify(k) + ":" + canon(o[k])).join(",") + "}";
+};
+
 // --------------------------------------------------------------- xorshift32
 export function xorshift32(seedStr) {
   let h = 2166136261 >>> 0;
