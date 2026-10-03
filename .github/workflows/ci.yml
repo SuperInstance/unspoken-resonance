@@ -15,9 +15,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      # stdlib-only repo: no dependencies, no lockfile, nothing to install.
-      # npm test only: run-warm.mjs is deterministic (verified byte-identical
-      # against the committed receipt) but has no --check mode and
-      # unconditionally overwrites receipts/warm-start.jsonl, so it stays
-      # out of CI until a check mode exists.
+      # stdlib-only repo: no dependencies, no lockfile, nothing to install
       - run: npm test
+      # pre-registered invariants + determinism gate: run-warm --check
+      # recomputes the whole experiment in memory and byte-compares it
+      # against receipts/warm-start.jsonl — it NEVER writes (the --check
+      # mode added when the receipt gained its pre-registered fields).
+      - run: node run-warm.mjs --check

@@ -3,7 +3,7 @@
 // cosine search, the jev-turbovec pattern). A new campaign can ask the
 // memory for the nearest past field and BEGIN from it — passes saved are
 // receipted against the cold-start baseline.
-import { sha256, round6, xorshift32, CHANNELS } from "./core.mjs";
+import { sha256, round6, xorshift32, CHANNELS, fieldAgreement } from "./core.mjs";
 
 const DIM = 64;
 function fnv1a(text) {
@@ -73,4 +73,22 @@ export function findSimilarField(memory, field, k = 1) {
     })
     .sort((a, b) => a.fieldDistance - b.fieldDistance)
     .slice(0, k);
+}
+
+// diversity: mean pairwise field distance over UNORDERED pairs — the
+// anti-homogenization measure pre-registered in spec/invariants.json
+// (cross-seed-diversity). Empty or single-field input has no pairs -> null:
+// nothing was measured, never a fake 0. (1 - fieldAgreement) per pair,
+// rounded per pair before averaging so the mean is honest about its terms.
+export function diversity(fields) {
+  const fs = (fields ?? []).filter(Boolean);
+  if (fs.length < 2) return null;
+  let sum = 0, n = 0;
+  for (let i = 0; i < fs.length; i++) {
+    for (let j = i + 1; j < fs.length; j++) {
+      sum += round6(1 - fieldAgreement(fs[i], fs[j]));
+      n++;
+    }
+  }
+  return round6(sum / n);
 }

@@ -109,13 +109,20 @@ export function jepaPredictor() {
 
 // Instrument 3 — MOTH: soft perturbation. Live: quantum-random bits from the
 // moth-seal service. Fallback: seeded draws. Honest about the source either
-// way; the perturbation stays soft (amplitude 0.35 max).
-export function mothNudges(seed, liveBits) {
+// way; the perturbation stays soft — amplitude 0.35 by default, and when a
+// near warm-start earns a bigger breath, amp(closeness) scales it toward the
+// pre-registered 0.5 cap (spec/invariants.json, moth-breath-scaling).
+// Pre-registered formula: amp(closeness) = clamp(0.35 * (1 + 0.5 * closeness), 0.35, 0.5)
+export const mothAmp = (closeness) =>
+  Math.min(0.5, Math.max(0.35, 0.35 * (1 + 0.5 * closeness)));
+
+export function mothNudges(seed, liveBits, opts = {}) {
+  const amp = opts.amp ?? 0.35; // default = the historical breath, byte-identical
   const out = { source: liveBits ? "mothquantum:comet" : "fallback:xorshift" };
   const bytes = liveBits ?? (() => { const r = xorshift32("moth|" + seed); return Array.from({ length: 32 }, () => Math.floor(r() * 256)); })();
   for (let i = 0; i < CHANNELS.length; i++) {
     const b = bytes[i % bytes.length] / 255;               // [0,1]
-    out[CHANNELS[i]] = round6((b * 2 - 1) * 0.35);
+    out[CHANNELS[i]] = round6((b * 2 - 1) * amp);
   }
   return out;
 }
@@ -181,7 +188,7 @@ export function deterministicSkin(field, seed) {
 export const RESONANCE_THRESHOLD = 0.82;
 export const PASSES_MAX = 24;
 
-export async function runResonance({ seed, chorusLive, skinFn, threshold = RESONANCE_THRESHOLD, passesMax = PASSES_MAX, startField = null }) {
+export async function runResonance({ seed, chorusLive, skinFn, threshold = RESONANCE_THRESHOLD, passesMax = PASSES_MAX, startField = null, mothAmp: mothAmpOpt = null }) {
   const frame = makeFrame(seed);
   const field = startField ? { ...startField } : {};
   const mem = {}; // JEV rhizome memory
@@ -192,7 +199,9 @@ export async function runResonance({ seed, chorusLive, skinFn, threshold = RESON
   for (let pass = 1; pass <= passesMax; pass++) {
     const jev = jevJudge(frame, field, mem);
     const jep = jepa.predict(frame, pass);
-    const moth = chorusLive?.moth ? await chorusLive.moth() : mothNudges(seed, null);
+    const moth = chorusLive?.moth
+      ? await chorusLive.moth()
+      : mothNudges(seed, null, mothAmpOpt == null ? {} : { amp: mothAmpOpt });
     const chorus = { jev, jepa: jep, moth };
     const rec = resonatePass(frame, field, chorus);
     rec.pass = pass;

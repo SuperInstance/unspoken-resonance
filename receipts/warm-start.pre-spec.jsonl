@@ -1,0 +1,13 @@
+{"phase":1,"seed":"oak-1","mode":"cold","passes":4,"played":true,"prev_tip":"000000000000","tip":"b04db40b552c"}
+{"phase":1,"seed":"oak-2","mode":"cold","passes":6,"played":true,"prev_tip":"b04db40b552c","tip":"24b0ea766d60"}
+{"phase":1,"seed":"ferry-1","mode":"cold","passes":4,"played":true,"prev_tip":"24b0ea766d60","tip":"2cc348bdc3e4"}
+{"phase":1,"seed":"ferry-2","mode":"cold","passes":4,"played":true,"prev_tip":"2cc348bdc3e4","tip":"9a2a0436635d"}
+{"phase":2,"seed":"oak-3","mode":"cold","passes":7,"played":true,"finalField":{"light":0.025563,"motion":0.008331,"presence":-0.094025},"prev_tip":"9a2a0436635d","tip":"a00e4a4dcb0b"}
+{"phase":2,"seed":"oak-3","mode":"warm","passes":7,"played":true,"warmFrom":"cold","warmDistance":null,"counted":false,"passesSaved":null,"prev_tip":"a00e4a4dcb0b","tip":"0d88a5ed950f"}
+{"phase":2,"seed":"ferry-3","mode":"cold","passes":4,"played":true,"finalField":{"light":-0.068948,"motion":-0.082823,"presence":-0.046802},"prev_tip":"0d88a5ed950f","tip":"eabddca17929"}
+{"phase":2,"seed":"ferry-3","mode":"warm","passes":4,"played":true,"warmFrom":"cold","warmDistance":null,"counted":false,"passesSaved":null,"prev_tip":"eabddca17929","tip":"ffa315ece1f3"}
+{"phase":2,"seed":"driftwood-1","mode":"cold","passes":5,"played":true,"finalField":{"light":-0.018165,"motion":-0.074302,"presence":-0.0599},"prev_tip":"ffa315ece1f3","tip":"2ec441b3c6f5"}
+{"phase":2,"seed":"driftwood-1","mode":"warm","passes":2,"played":true,"warmFrom":"oak-1","warmDistance":0.622036,"counted":true,"passesSaved":3,"prev_tip":"2ec441b3c6f5","tip":"813b285498ed"}
+{"phase":3,"seed":"oak-3","mode":"warm-field","passes":5,"played":true,"warmFrom":"oak-1","warmDistance":0.202091,"coldPasses":7,"passesSaved":2,"prev_tip":"813b285498ed","tip":"98deabb0e47d"}
+{"phase":3,"seed":"ferry-3","mode":"warm-field","passes":2,"played":true,"warmFrom":"ferry-1","warmDistance":0.047083,"coldPasses":4,"passesSaved":2,"prev_tip":"98deabb0e47d","tip":"785ceb3dba3e"}
+{"phase":3,"seed":"driftwood-1","mode":"warm-field","passes":2,"played":true,"warmFrom":"oak-1","warmDistance":0.0049,"coldPasses":5,"passesSaved":3,"prev_tip":"785ceb3dba3e","tip":"e34ad4e8dbab"}

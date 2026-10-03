@@ -75,7 +75,8 @@ One spoken call each; ~15-30 silent nudges each.
 node run.mjs                          # offline campaign (5 seeds)
 node run.mjs --live --seeds a,b,c     # quantum moth + LLM skin
 node run-warm.mjs                     # Bridge-2 A/B: cold vs warm passes (deterministic; rewrites its receipt)
-npm test                              # 15/15 (10 core + 5 memory)
+node run-warm.mjs --check             # recompute + byte-compare vs the receipt of record; NEVER writes (CI gate)
+npm test                              # 22/22 (10 core + 5 memory + 7 spec/contract)
 node --test tests/*.test.mjs          # same suite, raw (no directory form: `node --test tests/` fails)
 node tools/bundle-demo.mjs            # rebuild the demo page
 ```
@@ -109,6 +110,34 @@ instead of cold. Two lookups exist, and the A/B receipts (`run-warm.mjs`,
 The production flow this receipts: every new shape runs cold ONCE; every
 later run of that shape starts from its field signature. 5 new tests
 (10/15 total green across suites).
+
+## Pre-registered invariants (`spec/invariants.json`)
+
+Warm-starting is a homogenization risk (WP-11): every drum starting from a
+similar past field could converge to identical fields while racking up
+"passes saved". So Bridge 2's guard was PRE-REGISTERED — the spec was
+committed before its implementation, and its expectation hash
+`spec_sha = sha256(canon(spec))` rides in **every** `run-warm` receipt row:
+
+- **cross-seed-diversity** — mean pairwise field distance (`1 - fieldAgreement`)
+  across distinct-seed warm-arm final fields must stay **>= 0.8 ×** the same
+  measure on the COLD arm of the same run set (cold = control rung; relative
+  floor because absolute diversity is scene-dependent). Evaluated after the
+  phases as a `phase: 4, kind: "invariants"` summary row.
+- **moth-breath-scaling** — `amp(closeness) = clamp(0.35 * (1 + 0.5 * closeness), 0.35, 0.5)`,
+  `closeness = 1 - warmDistance`: the nearer the warm-start, the stronger the
+  moth's perturbation budget, so near warm-starts cannot converge to identical
+  drums. Base 0.35 preserved for cold starts; 0.5 cap pre-registered.
+
+On breach the summary row says `verdict: "INDETERMINATE"`, the receipt is
+kept, and the process exits 1 — no silent canonization. `node run-warm.mjs
+--check` recomputes everything in memory and byte-compares against
+`receipts/warm-start.jsonl` (exit 0 equal / 1 diverged; it NEVER writes) —
+that is the CI gate. `receipts/warm-start.pre-spec.jsonl` is the superseded
+Bridge-2 receipt of record, kept so the pre-registration is visible in the
+file layout itself; regenerating under the seal left every cold row
+value-identical and changed exactly one warm row (oak-3 field-signature
+5→4 passes — the bigger breath at closeness 0.80 did its job).
 
 ## Honest limits
 
