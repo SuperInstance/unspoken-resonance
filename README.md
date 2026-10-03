@@ -88,8 +88,29 @@ deterministic frame — prose, music arrangement, level design, UI themes.
 The unspoken layer is where JEV, JEPA and certified randomness compose
 without a single word being spent.
 
+
+## Bridge 2, receipted: warm-started resonance (`field-memory.mjs`)
+
+WP-11's second bridge is implemented. Every tuned field can be indexed
+(`FieldMemory`); a new campaign can start from the nearest past field
+instead of cold. Two lookups exist, and the A/B receipts (`run-warm.mjs`,
+`receipts/warm-start.jsonl`) show why the second is the honest one:
+
+- **text-key lookup** (seed-string embedding): found `driftwood-1 ~ oak-1`
+  (5→2 passes) but missed the oak and ferry families — name distance is not
+  tuning distance. Counted pairs only: 3 passes saved.
+- **field-signature lookup** (cosine over the tuned field itself — "drums
+  that tuned like this one"): oak-3 7→5, ferry-3 4→2 (found ferry-1 at
+  distance 0.047), driftwood-1 5→2. **7 of 16 passes saved (44%)**, family
+  relationships respected.
+
+The production flow this receipts: every new shape runs cold ONCE; every
+later run of that shape starts from its field signature. 5 new tests
+(10/15 total green across suites).
+
 ## Honest limits
 
+- Text-key memory lookup is a weak proxy for tuning kinship (receipted); field-signature lookup is the honest key.
 - The resonance metric rewards stability; a chorus could learn to agree with
   itself quickly on a boring field (the weight guard is a first defense, not
   a full answer — a diversity term is future work, shared with madlibs-jev's

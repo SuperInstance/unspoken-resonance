@@ -170,9 +170,9 @@ export function deterministicSkin(field, seed) {
 export const RESONANCE_THRESHOLD = 0.82;
 export const PASSES_MAX = 24;
 
-export async function runResonance({ seed, chorusLive, skinFn, threshold = RESONANCE_THRESHOLD, passesMax = PASSES_MAX }) {
+export async function runResonance({ seed, chorusLive, skinFn, threshold = RESONANCE_THRESHOLD, passesMax = PASSES_MAX, startField = null }) {
   const frame = makeFrame(seed);
-  const field = {};
+  const field = startField ? { ...startField } : {};
   const mem = {}; // JEV rhizome memory
   const jepa = jepaPredictor();
   const rows = [];
