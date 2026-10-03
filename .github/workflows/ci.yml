@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # stdlib-only repo: no dependencies, no lockfile, nothing to install.
+      # npm test only: run-warm.mjs is deterministic (verified byte-identical
+      # against the committed receipt) but has no --check mode and
+      # unconditionally overwrites receipts/warm-start.jsonl, so it stays
+      # out of CI until a check mode exists.
+      - run: npm test
