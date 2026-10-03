@@ -74,7 +74,9 @@ One spoken call each; ~15-30 silent nudges each.
 ```bash
 node run.mjs                          # offline campaign (5 seeds)
 node run.mjs --live --seeds a,b,c     # quantum moth + LLM skin
-node --test tests/core.test.mjs       # 10/10
+node run-warm.mjs                     # Bridge-2 A/B: cold vs warm passes (deterministic; rewrites its receipt)
+npm test                              # 15/15 (10 core + 5 memory)
+node --test tests/*.test.mjs          # same suite, raw (no directory form: `node --test tests/` fails)
 node tools/bundle-demo.mjs            # rebuild the demo page
 ```
 
