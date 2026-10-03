@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unspoken-resonance — the drum plays when tuned</title>
+<style>
+  :root {
+    --ink: #0d0f14; --panel: #12151d; --edge: #232a38;
+    --teal: #7ee0c3; --amber: #f0b429; --rose: #e77c8d; --violet: #9d8cff;
+    --text: #d7dce6; --dim: #7c8699;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--ink); color: var(--text); font: 15px/1.55 "Georgia", serif; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 28px 22px 60px; }
+  h1 { font: 700 22px/1.3 "IBM Plex Mono", ui-monospace, monospace; color: var(--teal); letter-spacing: .5px; }
+  .sub { color: var(--dim); font-style: italic; margin: 6px 0 22px; }
+  .grid { display: grid; grid-template-columns: 380px 1fr; gap: 18px; }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 16px; }
+  .panel h2 { font: 600 12px/1 "IBM Plex Mono", ui-monospace, monospace; color: var(--dim); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 12px; }
+  canvas { display: block; width: 100%; }
+  .row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .row label { width: 96px; font: 12px "IBM Plex Mono", ui-monospace, monospace; color: var(--dim); }
+  .bar-track { flex: 1; height: 10px; background: #0a0c11; border-radius: 5px; overflow: hidden; position: relative; }
+  .bar { position: absolute; top: 0; bottom: 0; border-radius: 5px; transition: width .18s; }
+  .bar.left { right: 50%; } .bar.right { left: 50%; }
+  .val { width: 54px; text-align: right; font: 12px "IBM Plex Mono", ui-monospace, monospace; color: var(--text); }
+  .jev .bar { background: var(--teal); } .jepa .bar { background: var(--violet); } .moth .bar { background: var(--amber); }
+  .field .bar { background: var(--rose); }
+  button {
+    background: var(--teal); color: #08120e; border: 0; border-radius: 7px;
+    font: 700 13px "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .8px;
+    padding: 10px 18px; cursor: pointer; margin-right: 8px;
+  }
+  button.ghost { background: transparent; color: var(--teal); border: 1px solid var(--edge); }
+  select {
+    background: #0a0c11; color: var(--text); border: 1px solid var(--edge); border-radius: 6px;
+    font: 13px "IBM Plex Mono", ui-monospace, monospace; padding: 8px 10px;
+  }
+  .resonance-read { font: 13px "IBM Plex Mono", ui-monospace, monospace; color: var(--dim); margin-top: 6px; }
+  .resonance-read b { color: var(--amber); }
+  #skin {
+    margin-top: 4px; padding: 14px 16px; border-left: 3px solid var(--amber);
+    background: #141821; border-radius: 0 8px 8px 0; font-style: italic; color: var(--text);
+    opacity: 0; transition: opacity 1.6s; min-height: 66px; white-space: pre-wrap;
+  }
+  #skin.on { opacity: 1; }
+  .receipts { margin-top: 18px; }
+  .rc { font: 11.5px/1.7 "IBM Plex Mono", ui-monospace, monospace; color: var(--dim); border-top: 1px dashed var(--edge); padding: 7px 0; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .rc b { color: var(--teal); font-weight: 600; }
+  .note { color: var(--dim); font-size: 13px; margin-top: 18px; }
+  .laws { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 18px 0 26px; }
+  .law { border: 1px solid var(--edge); border-radius: 8px; padding: 10px 12px; }
+  .law h3 { font: 700 11px "IBM Plex Mono", ui-monospace, monospace; color: var(--teal); letter-spacing: 1px; margin-bottom: 4px; }
+  .law p { font-size: 12.5px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>unspoken-resonance</h1>
+  <div class="sub">the chorus tunes the drum; the word-smith only stretches the skin. one spoken call, many silent nudges.</div>
+
+  <div class="laws">
+    <div class="law"><h3>THE FRAME THINKS</h3><p>A 4×3 procedural scene grid exists before any words do. It is the drum-frame.</p></div>
+    <div class="law"><h3>THE CHORUS NUDGES</h3><p>JEV judges and is changed by judging. JEPA is surprised into attention. Moth perturbs with certified randomness. Nothing dictates.</p></div>
+    <div class="law"><h3>PLAYED ONLY WHEN TUNED</h3><p>When the field agrees with itself (resonance ≥ 0.82) and is not weightless, the skin goes on.</p></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <h2>The drum-frame</h2>
+        <canvas id="frame" width="348" height="262"></canvas>
+        <div class="resonance-read">pass <b id="passN">0</b> · resonance <b id="resV">—</b> · weight <b id="wtV">—</b></div>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <h2>Campaign</h2>
+        <div class="row">
+          <label>seed</label>
+          <select id="seedSel"></select>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button id="playBtn">PLAY THE CHORUS</button>
+          <button class="ghost" id="resetBtn">RESET</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h2>The unspoken field</h2>
+        <div id="bars"></div>
+        <div class="note">each channel: three instrument nudges (jev · jepa · moth) accumulate into the rose field, damped. the frame drifts toward it; the engine conserves energy and receipts every pass.</div>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <h2>The skin (last-mile words)</h2>
+        <div id="skin">…the drum waits…</div>
+      </div>
+      <div class="panel receipts" style="margin-top:14px">
+        <h2>Receipted live campaigns (moth=quantum · skin=LLM)</h2>
+        <div id="rc"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:22px">The receipts above are from the real live ledger: comet-qrng bits carry an auditable commitment hash; each skin was one word-smith call receiving only the tuned field. Everything on this page runs locally, no network.</div>
+</div>
+
+<script id="bundled-receipts" type="application/json">[{"kind":"campaign","seed":"drum1","passes":7,"played":true,"playedAt":7,"resonance":0.998202,"threshold":0.82,"finalField":{"light":-0.09698,"motion":0.002888,"presence":-0.009538},"finalEnergy":12.534638,"mothSource":"fallback:xorshift","skin":{"text":"A scene dusk-dim, mid-gesture, self-communed. The frame holds; the words are only its skin.","llm":false,"reason":"offline campaign"},"prev_tip":"000000000000","tip":"aae3d1855be4"},{"kind":"campaign","seed":"drum2","passes":8,"played":true,"playedAt":8,"resonance":0.997539,"threshold":0.82,"finalField":{"light":-0.02135,"motion":-0.058252,"presence":-0.060657},"finalEnergy":12.651386,"mothSource":"fallback:xorshift","skin":{"text":"A scene under a low sky, held still, empty of everyone. The frame holds; the words are only its skin.","llm":false,"reason":"offline campaign"},"prev_tip":"aae3d1855be4","tip":"ad5430a07410"},{"kind":"campaign","seed":"drum3","passes":4,"played":true,"playedAt":4,"resonance":0.998461,"threshold":0.82,"finalField":{"light":0.024441,"motion":-0.089601,"presence":-0.055694},"finalEnergy":11.64906,"mothSource":"fallback:xorshift","skin":{"text":"A scene noon-pale, at anchor, empty of everyone. The frame holds; the words are only its skin.","llm":false,"reason":"offline campaign"},"prev_tip":"ad5430a07410","tip":"0bba01c90ddd"},{"kind":"campaign","seed":"drum4","passes":9,"played":true,"playedAt":9,"resonance":0.998886,"threshold":0.82,"finalField":{"light":0.035447,"motion":-0.059161,"presence":-0.060808},"finalEnergy":11.914661,"mothSource":"fallback:xorshift","skin":{"text":"A scene bright as struck brass, at anchor, empty of everyone. The frame holds; the words are only its skin.","llm":false,"reason":"offline campaign"},"prev_tip":"0bba01c90ddd","tip":"a9d3cb8ef04e"},{"kind":"campaign","seed":"drum5","passes":8,"played":true,"playedAt":8,"resonance":0.999504,"threshold":0.82,"finalField":{"light":-0.030667,"motion":-0.025037,"presence":-0.085434},"finalEnergy":10.526439,"mothSource":"fallback:xorshift","skin":{"text":"A scene lamp-shadowed, at anchor, alone with its hum. The frame holds; the words are only its skin.","llm":false,"reason":"offline campaign"},"prev_tip":"a9d3cb8ef04e","tip":"560e3c3babb8"},{"kind":"campaign","seed":"nightfall","passes":4,"played":true,"playedAt":4,"resonance":0.999101,"threshold":0.82,"finalField":{"light":-0.021113,"motion":-0.055763,"presence":-0.07858},"finalEnergy":11.501328,"mothSource":"fallback:xorshift","skin":{"text":"The lamp on the windowsill flickered once, as if remembering how to breathe, then settled into a dimness too quiet to call shadow.  \nOutside, a single leaf skidded across the pavement—not falling, not dancing, just drifting, as though the air had forgotten its name.  \nNo one passed by. No breath stirred the curtain. The house held its silence like a secret too heavy to speak, too tired to keep.","llm":true,"promptChars":264,"model":"Qwen/Qwen3-Next-80B-A3B-Instruct"},"prev_tip":"000000000000","tip":"3671a30b188e"},{"kind":"campaign","seed":"harbor","passes":6,"played":true,"playedAt":6,"resonance":0.999098,"threshold":0.82,"finalField":{"light":-0.006107,"motion":0.028853,"presence":-0.094612},"finalEnergy":12.132188,"mothSource":"fallback:xorshift","skin":{"text":"The bulb flickered once, as if forgetting how to stay lit, its glow thin as breath on glass.  \nA shadow slipped across the floor—not quite movement, not quite absence—leaving only the ghost of a pulse in the dust.  \nNo one came, no one called; the air held its silence like a secret too heavy to speak.","llm":true,"promptChars":263,"model":"Qwen/Qwen3-Next-80B-A3B-Instruct"},"prev_tip":"3671a30b188e","tip":"2d1dcba62bc7"},{"kind":"campaign","seed":"nightfall","passes":5,"played":true,"playedAt":5,"resonance":0.999275,"threshold":0.82,"finalField":{"light":-0.067579,"motion":-0.028383,"presence":-0.047425},"finalEnergy":11.501328,"mothSource":"mothquantum:comet","mothLive":{"hex":"3e7f812955ac109dd2a2323221c4ab37","commit":"c47b672540ba83bb5419207e6495eb41c57ef30a9082c96a2693c104beabbd3e","backend":"aer"},"skin":{"text":"The lamp on the windowsill flickered once, as if remembering it had once been brighter.  \nOutside, a cat stepped over a fallen leaf—no sound, no pause—and vanished into the hush between breaths.  \nNo one came to close the door, and the air, thin with absence, held the weight of something never quite said.","llm":true,"promptChars":264,"model":"Qwen/Qwen3-Next-80B-A3B-Instruct"},"prev_tip":"000000000000","tip":"20c8c5b06033"},{"kind":"campaign","seed":"harbor","passes":6,"played":true,"playedAt":6,"resonance":0.999387,"threshold":0.82,"finalField":{"light":-0.066671,"motion":-0.018911,"presence":-0.068497},"finalEnergy":12.132188,"mothSource":"mothquantum:comet","mothLive":{"hex":"3e7f812955ac109dd2a2323221c4ab37","commit":"c47b672540ba83bb5419207e6495eb41c57ef30a9082c96a2693c104beabbd3e","backend":"aer"},"skin":{"text":"The lamp on the windowsill flickered once, as if forgetting how to stay lit.  \nOutside, a leaf trembled in a breath of air that didn’t quite count as wind.  \nNo one came to the door, and the silence didn’t so much settle as dissolve—quietly, uselessly, like a name no one remembered to call.","llm":true,"promptChars":264,"model":"Qwen/Qwen3-Next-80B-A3B-Instruct"},"prev_tip":"20c8c5b06033","tip":"43bf84505835"},{"kind":"campaign","seed":"drift","passes":5,"played":true,"playedAt":5,"resonance":0.999751,"threshold":0.82,"finalField":{"light":-0.089163,"motion":-0.042513,"presence":0.000557},"finalEnergy":12.477645,"mothSource":"mothquantum:comet","mothLive":{"hex":"3e7f812955ac109dd2a2323221c4ab37","commit":"c47b672540ba83bb5419207e6495eb41c57ef30a9082c96a2693c104beabbd3e","backend":"aer"},"skin":{"text":"The light hung thin, barely enough to blush the dust motes into visibility, as if the sun had forgotten to turn up the dial.  \nA breath of motion stirred the curtain—not a wind, not a sigh, just the faintest tremor in the air, like a held thought refusing to leave.  \nNo one was there, but the chair remembered sitting.","llm":true,"promptChars":263,"model":"Qwen/Qwen3-Next-80B-A3B-Instruct"},"prev_tip":"43bf84505835","tip":"65502c6e4d6f"}]</script>
+<script>
+/* ===== client port of the chorus math (pinned against core.mjs by tests) ===== */
+const CHANNELS = ["light", "motion", "presence"];
+function xorshift32(str) {
+  let h = 2166136261 >>> 0;
+  const bytes = new TextEncoder().encode(String(str));
+  for (const b of bytes) { h ^= b; h = Math.imul(h, 16777619) >>> 0; }
+  let s = h || 0x9e3779b9;
+  return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+const r6 = (x) => Math.round(x * 1e6) / 1e6;
+function makeFrame(seed) {
+  const rnd = xorshift32("frame|" + seed);
+  const cells = [];
+  for (let i = 0; i < 12; i++) cells.push({ light: rnd(), motion: rnd(), presence: rnd() });
+  return cells;
+}
+function energy(cells) { let e = 0; for (const c of cells) for (const k of CHANNELS) e += c[k] * c[k]; return r6(e); }
+function jevJudge(cells, field, mem) {
+  const n = {}; let d = 0;
+  for (const k of CHANNELS) {
+    let sum = 0; for (const c of cells) sum += (c[k] - 0.5) * 2 * (field[k] ?? 0);
+    n[k] = r6(Math.max(-1, Math.min(1, sum / cells.length))); d += Math.abs(n[k]);
+  }
+  mem.norm = r6(0.9 * (mem.norm ?? 0) + 0.1 * Math.min(1, d / 3));
+  return n;
+}
+function jepaPredictor() {
+  const pred = {};
+  return (cells) => {
+    const out = {}; let surprise = 0;
+    for (const k of CHANNELS) {
+      const mean = cells.reduce((a, c) => a + c[k], 0) / cells.length;
+      const p = pred[k] ?? mean; surprise += Math.abs(p - mean);
+      out[k] = r6(Math.max(-1, Math.min(1, (p - mean) * 4)));
+      pred[k] = 0.999 * (pred[k] ?? mean) + 0.001 * mean;
+    }
+    out._s = surprise / 3; return out;
+  };
+}
+function mothNudges(seed, bytes) {
+  const out = { source: bytes ? "mothquantum:comet" : "fallback:xorshift" };
+  const bs = bytes ?? (() => { const r = xorshift32("moth|" + seed); return Array.from({ length: 32 }, () => Math.floor(r() * 256)); })();
+  for (let i = 0; i < 3; i++) out[CHANNELS[i]] = r6((bs[i % bs.length] / 255) * 2 - 1) * 0.35;
+  return out;
+}
+function agree(a, b) {
+  let dot = 0, na = 0, nb = 0;
+  for (const k of CHANNELS) { dot += (a[k] ?? 0) * (b[k] ?? 0); na += (a[k] ?? 0) ** 2; nb += (b[k] ?? 0) ** 2; }
+  if (!na && !nb) return 1;
+  return r6(((dot / (Math.sqrt(na) * Math.sqrt(nb) || 1)) + 1) / 2);
+}
+const REG = {
+  light:   { hi: ["lit clear through", "noon-pale", "bright as struck brass"], lo: ["dusk-dim", "lamp-shadowed", "under a low sky"] },
+  motion:  { hi: ["everything leaning into motion", "restless", "mid-gesture"], lo: ["held still", "breath-slow", "at anchor"] },
+  presence:{ hi: ["crowded with company", "peopled to the corners", "attended"], lo: ["empty of everyone", "self-communed", "alone with its hum"] },
+};
+function deterministicSkin(field, seed) {
+  const pick = (arr, s) => arr[Math.floor(xorshift32(s)() * arr.length) % arr.length];
+  const parts = CHANNELS.map((k) => (field[k] ?? 0) >= 0 ? pick(REG[k].hi, seed + k) : pick(REG[k].lo, seed + k));
+  return `A scene ${parts[0]}, ${parts[1]}, ${parts[2]}. The frame holds; the words are only its skin.`;
+}
+
+/* ===== the page ===== */
+const receipts = JSON.parse(document.getElementById("bundled-receipts").textContent || "[]");
+const seeds = receipts.length ? receipts.map((r) => r.seed) : ["drum1"];
+const sel = document.getElementById("seedSel");
+for (const s of seeds) { const o = document.createElement("option"); o.value = s; o.textContent = s; sel.appendChild(o); }
+
+const bars = document.getElementById("bars");
+for (const k of CHANNELS) {
+  const g = document.createElement("div");
+  g.innerHTML = `
+    <div class="row jev"><label>jev · ${k}</label><div class="bar-track"><div class="bar left" id="jev_l_${k}"></div><div class="bar right" id="jev_r_${k}"></div></div><div class="val" id="jev_v_${k}">0</div></div>
+    <div class="row jepa"><label>jepa · ${k}</label><div class="bar-track"><div class="bar left" id="jepa_l_${k}"></div><div class="bar right" id="jepa_r_${k}"></div></div><div class="val" id="jepa_v_${k}">0</div></div>
+    <div class="row moth"><label>moth · ${k}</label><div class="bar-track"><div class="bar left" id="moth_l_${k}"></div><div class="bar right" id="moth_r_${k}"></div></div><div class="val" id="moth_v_${k}">0</div></div>
+    <div class="row field"><label>field · ${k}</label><div class="bar-track"><div class="bar left" id="field_l_${k}"></div><div class="bar right" id="field_r_${k}"></div></div><div class="val" id="field_v_${k}">0</div></div>`;
+  bars.appendChild(g);
+}
+function setBar(inst, k, v) {
+  const p = Math.min(50, Math.abs(v) * 50);
+  document.getElementById(`${inst}_l_${k}`).style.width = v < 0 ? p + "%" : "0";
+  document.getElementById(`${inst}_r_${k}`).style.width = v >= 0 ? p + "%" : "0";
+  document.getElementById(`${inst}_v_${k}`).textContent = Number(v).toFixed(3);
+}
+
+const cvs = document.getElementById("frame"), ctx = cvs.getContext("2d");
+let cells = [], field = {}, mem = {}, jepa = null, pass = 0, prev = null, resonance = 0, played = false, anim = null;
+function draw() {
+  ctx.clearRect(0, 0, cvs.width, cvs.height);
+  const W = cvs.width / 4, H = cvs.height / 3;
+  cells.forEach((c, i) => {
+    const x = (i % 4) * W, y = Math.floor(i / 4) * H;
+    const r = 18 + c.light * 30, g = 14 + c.motion * 26, b = 24 + c.presence * 40;
+    ctx.fillStyle = `rgb(${Math.round(r + 14)},${Math.round(g + 22)},${Math.round(b + 30)})`;
+    ctx.strokeStyle = played ? "rgba(240,180,41,.85)" : "rgba(126,224,195,.5)";
+    ctx.lineWidth = played ? 2.5 : 1;
+    ctx.beginPath(); ctx.roundRect(x + 5, y + 5, W - 10, H - 10, 7); ctx.fill(); ctx.stroke();
+    const glow = (c.light + c.motion + c.presence) / 3;
+    ctx.fillStyle = `rgba(215,220,230,${0.25 + glow * 0.65})`;
+    ctx.beginPath(); ctx.arc(x + W / 2, y + H / 2, 3 + glow * 4, 0, Math.PI * 2); ctx.fill();
+  });
+}
+function reset() {
+  if (anim) cancelAnimationFrame(anim);
+  cells = makeFrame(sel.value); field = {}; mem = {}; jepa = jepaPredictor();
+  pass = 0; prev = null; resonance = 0; played = false;
+  const skinEl = document.getElementById("skin");
+  skinEl.classList.remove("on");
+  skinEl.textContent = "…the drum waits…";
+  document.getElementById("passN").textContent = "0";
+  document.getElementById("resV").textContent = "—";
+  document.getElementById("wtV").textContent = "—";
+  draw();
+}
+function step() {
+  pass++;
+  const jev = jevJudge(cells, field, mem);
+  const jep = jepa(cells);
+  const moth = mothNudges(sel.value, null);
+  for (const k of CHANNELS) {
+    const n = (jev[k] ?? 0) + (jep[k] ?? 0) + (moth[k] ?? 0);
+    field[k] = r6(0.85 * (field[k] ?? 0) + 0.15 * Math.max(-1, Math.min(1, n / 3)));
+  }
+  for (const c of cells) for (const k of CHANNELS) c[k] = Math.max(0, Math.min(1, c[k] + 0.12 * (field[k] - (c[k] - 0.5) * 2)));
+  if (prev) resonance = agree(field, prev);
+  prev = { ...field };
+  const weight = Math.sqrt(CHANNELS.reduce((a, k) => a + (field[k] ?? 0) ** 2, 0) / 3);
+  for (const k of CHANNELS) { setBar("jev", k, jev[k]); setBar("jepa", k, jep[k]); setBar("moth", k, moth[k]); setBar("field", k, field[k]); }
+  document.getElementById("passN").textContent = pass;
+  document.getElementById("resV").textContent = prev ? resonance.toFixed(3) : "—";
+  document.getElementById("wtV").textContent = weight.toFixed(3);
+  draw();
+  if (!played && prev && resonance >= 0.82 && weight > 0.05) {
+    played = true;
+    const rec = receipts.find((r) => r.seed === sel.value);
+    const skinEl = document.getElementById("skin");
+    skinEl.textContent = rec && rec.skin?.llm
+      ? rec.skin.text + "\n\n— live skin (one LLM call on the tuned field)"
+      : deterministicSkin(field, sel.value) + "\n\n— local skin (deterministic word-smith)";
+    skinEl.classList.add("on");
+    return;
+  }
+  if (!played) anim = requestAnimationFrame(() => setTimeout(step, 420));
+}
+
+document.getElementById("playBtn").onclick = () => { reset(); anim = requestAnimationFrame(() => setTimeout(step, 200)); };
+document.getElementById("resetBtn").onclick = reset;
+sel.onchange = reset;
+
+const rc = document.getElementById("rc");
+if (!receipts.length) { rc.innerHTML = '<div class="rc">no receipts bundled yet — run node run.mjs --live</div>'; }
+else for (const r of receipts) {
+  const d = document.createElement("div");
+  d.className = "rc";
+  d.innerHTML = `<span><b>${r.seed}</b> · played@p${r.playedAt ?? "—"} · resonance ${r.resonance ?? "—"} · passes ${r.passes}</span><span>moth ${r.mothSource === "mothquantum:comet" ? "◆ quantum" : "◇ seeded"}${r.mothLive?.commit ? " · commit " + String(r.mothLive.commit).slice(0, 8) : ""} · skin ${r.skin?.llm ? "LLM" : "local"}</span>`;
+  rc.appendChild(d);
+}
+reset();
+</script>
+</body>
+</html>
